@@ -1,0 +1,16 @@
+{
+  "name": "mostafa-mohamed-portfolio",
+  "version": "1.0.0",
+  "description": "Mostafa Mohamed Elsayed — Flutter Developer & Computer Engineer Portfolio",
+  "scripts": {
+    "build": "bash build.sh"
+  },
+  "keywords": [
+    "flutter",
+    "dart",
+    "portfolio",
+    "web"
+  ],
+  "author": "Mostafa Mohamed Elsayed <safymo81@gmail.com>",
+  "license": "MIT"
+}
