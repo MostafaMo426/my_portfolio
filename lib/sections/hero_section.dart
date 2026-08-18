@@ -15,34 +15,66 @@ class HeroSection extends StatefulWidget {
 }
 
 class _HeroSectionState extends State<HeroSection> {
-  // Typewriter for subtitle
-  final String _fullSubtitle = 'Flutter Developer & Computer Engineer';
+  static const List<String> _titles = [
+    'Flutter Developer & Computer Engineer',
+  ];
+
+  int _titleIndex = 0;
   String _displayedSubtitle = '';
   int _charIndex = 0;
+  bool _isDeleting = false;
   bool _showCursor = true;
-  Timer? _typeTimer;
+  Timer? _loopTimer;
   Timer? _cursorTimer;
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 1000), _startTyping);
+    Future.delayed(const Duration(milliseconds: 600), _typeNextChar);
     _cursorTimer = Timer.periodic(
       const Duration(milliseconds: 530),
-      (_) => setState(() => _showCursor = !_showCursor),
+      (_) {
+        if (mounted) setState(() => _showCursor = !_showCursor);
+      },
     );
   }
 
-  void _startTyping() {
-    _typeTimer = Timer.periodic(const Duration(milliseconds: 60), (t) {
-      if (_charIndex < _fullSubtitle.length) {
+  void _typeNextChar() {
+    if (!mounted) return;
+    final currentTitle = _titles[_titleIndex];
+
+    if (!_isDeleting) {
+      // Typing forward
+      if (_charIndex < currentTitle.length) {
         setState(() {
-          _displayedSubtitle = _fullSubtitle.substring(0, ++_charIndex);
+          _displayedSubtitle = currentTitle.substring(0, ++_charIndex);
         });
+        _loopTimer = Timer(const Duration(milliseconds: 60), _typeNextChar);
       } else {
-        t.cancel();
+        // Pause at complete text for 2.2 seconds before deleting
+        _loopTimer = Timer(const Duration(milliseconds: 2200), () {
+          if (mounted) {
+            setState(() => _isDeleting = true);
+            _typeNextChar();
+          }
+        });
       }
-    });
+    } else {
+      // Deleting / Backspacing character by character
+      if (_charIndex > 0) {
+        setState(() {
+          _displayedSubtitle = currentTitle.substring(0, --_charIndex);
+        });
+        _loopTimer = Timer(const Duration(milliseconds: 32), _typeNextChar);
+      } else {
+        // Paused briefly on empty before typing next title
+        setState(() {
+          _isDeleting = false;
+          _titleIndex = (_titleIndex + 1) % _titles.length;
+        });
+        _loopTimer = Timer(const Duration(milliseconds: 450), _typeNextChar);
+      }
+    }
   }
 
   Future<void> _downloadCV() async {
@@ -54,7 +86,7 @@ class _HeroSectionState extends State<HeroSection> {
 
   @override
   void dispose() {
-    _typeTimer?.cancel();
+    _loopTimer?.cancel();
     _cursorTimer?.cancel();
     super.dispose();
   }
